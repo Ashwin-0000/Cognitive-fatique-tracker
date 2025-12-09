@@ -1,0 +1,43 @@
+{
+  "work_interval_minutes": 50,
+  "break_interval_minutes": 10,
+  "long_break_interval_minutes": 30,
+  "long_break_after_cycles": 4,
+  "fatigue_thresholds": {
+    "low": 30,
+    "medium": 60,
+    "high": 80
+  },
+  "monitoring": {
+    "track_keyboard": true,
+    "track_mouse_clicks": true,
+    "track_mouse_movement": true,
+    "activity_sample_interval_seconds": 60
+  },
+  "alerts": {
+    "enable_break_reminders": true,
+    "enable_fatigue_alerts": true,
+    "alert_cooldown_minutes": 10,
+    "sound_enabled": false
+  },
+  "ui": {
+    "theme": "dark",
+    "color_scheme": "blue",
+    "update_interval_ms": 1000,
+    "chart_history_minutes": 60
+  },
+  "eye_tracking": {
+    "enabled": false,
+    "camera_index": 0,
+    "update_interval_seconds": 1,
+    "show_camera_feed": false,
+    "normal_blink_rate": 15,
+    "low_blink_rate": 10,
+    "critical_blink_rate": 5
+  },
+  "data": {
+    "auto_save_interval_minutes": 5,
+    "keep_history_days": 30,
+    "export_path": "data/exports"
+  }
+}
