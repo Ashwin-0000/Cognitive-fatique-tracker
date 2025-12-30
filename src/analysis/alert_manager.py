@@ -4,6 +4,14 @@ from typing import Optional, Callable
 from src.models.fatigue_score import FatigueScore
 from src.utils.logger import default_logger as logger
 
+# Import sound manager
+try:
+    from src.utils.sound_manager import SoundManager
+    SOUND_AVAILABLE = True
+except ImportError:
+    SOUND_AVAILABLE = False
+    logger.warning("SoundManager not available")
+
 
 class AlertManager:
     """Manages alerts and notifications for breaks and fatigue"""
@@ -22,6 +30,9 @@ class AlertManager:
         """
         self.on_alert = on_alert
         self.cooldown_period = timedelta(minutes=cooldown_minutes)
+        
+        # Initialize sound manager
+        self.sound_manager = SoundManager() if SOUND_AVAILABLE else None
         
         self._last_break_alert: Optional[datetime] = None
         self._last_fatigue_alert: Optional[datetime] = None
@@ -164,6 +175,13 @@ class AlertManager:
             alert_type: Type of alert (break, fatigue, critical, info, custom)
         """
         logger.info(f"Alert [{alert_type}]: {title} - {message}")
+        
+        # Play appropriate sound
+        if self.sound_manager:
+            if alert_type == 'break':
+                self.sound_manager.play_break_alert()
+            elif alert_type in ['fatigue', 'critical', 'eye_strain']:
+                self.sound_manager.play_fatigue_alert()
         
         if self.on_alert:
             try:

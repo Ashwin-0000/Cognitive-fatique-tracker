@@ -1,0 +1,154 @@
+﻿======================================================================
+  COGNITIVE FATIGUE TRACKER - COMPREHENSIVE SYSTEM TEST
+======================================================================
+
+
+Starting comprehensive system test...
+
+
+======================================================================
+  TEST 1: Import All Modules
+======================================================================
+
+Testing module imports...
+python : Traceback 
+(most recent call 
+last):
+At line:1 char:1
++ python run_comprehe
+nsive_test.py 2>&1 | 
+Out-File -Encoding 
+utf8 test_ ...
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (Traceba   
+ ck (most recent     
+call last)::Stri    
+ng) [], RemoteEx    
+ception
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+  File "D:\code3\cogn
+itive_fatigue_tracker
+\run_comprehensive_te
+st.py", line 61, in 
+test_imports
+    print(f"  \u2705 
+{name}")
+  File "C:\Users\ashw
+i\AppData\Local\Progr
+ams\Python\Python311\
+Lib\encodings\cp1252.
+py", line 19, in 
+encode
+    return codecs.cha
+rmap_encode(input,sel
+f.errors,encoding_tab
+le)[0]
+           ^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
+^^^
+UnicodeEncodeError: 
+'charmap' codec 
+can't encode 
+character '\u2705' 
+in position 2: 
+character maps to 
+<undefined>
+
+During handling of 
+the above exception, 
+another exception 
+occurred:
+
+Traceback (most 
+recent call last):
+  File "D:\code3\cogn
+itive_fatigue_tracker
+\run_comprehensive_te
+st.py", line 27, in 
+wrapper
+    result = func()
+             ^^^^^^
+  File "D:\code3\cogn
+itive_fatigue_tracker
+\run_comprehensive_te
+st.py", line 64, in 
+test_imports
+    print(f"  \u274c 
+{name}: {str(e)}")
+  File "C:\Users\ashw
+i\AppData\Local\Progr
+ams\Python\Python311\
+Lib\encodings\cp1252.
+py", line 19, in 
+encode
+    return codecs.cha
+rmap_encode(input,sel
+f.errors,encoding_tab
+le)[0]
+           ^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
+^^^
+UnicodeEncodeError: 
+'charmap' codec 
+can't encode 
+character '\u274c' 
+in position 2: 
+character maps to 
+<undefined>
+
+During handling of 
+the above exception, 
+another exception 
+occurred:
+
+Traceback (most 
+recent call last):
+  File "D:\code3\cogn
+itive_fatigue_tracker
+\run_comprehensive_te
+st.py", line 349, in 
+<module>
+    sys.exit(main())
+             ^^^^^^
+  File "D:\code3\cogn
+itive_fatigue_tracker
+\run_comprehensive_te
+st.py", line 309, in 
+main
+    test_imports()
+  File "D:\code3\cogn
+itive_fatigue_tracker
+\run_comprehensive_te
+st.py", line 31, in 
+wrapper
+    print(f"\u274c 
+FAILED: {str(e)}")
+  File "C:\Users\ashw
+i\AppData\Local\Progr
+ams\Python\Python311\
+Lib\encodings\cp1252.
+py", line 19, in 
+encode
+    return codecs.cha
+rmap_encode(input,sel
+f.errors,encoding_tab
+le)[0]
+           ^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
+^^^
+UnicodeEncodeError: 
+'charmap' codec 
+can't encode 
+character '\u274c' 
+in position 0: 
+character maps to 
+<undefined>

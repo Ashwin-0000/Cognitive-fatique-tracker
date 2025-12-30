@@ -1,0 +1,157 @@
+{
+  "versions": [
+    {
+      "version": "v1",
+      "timestamp": "2025-12-11T12:01:17.729299",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v2",
+      "timestamp": "2025-12-11T12:01:18.507552",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v3",
+      "timestamp": "2025-12-11T12:01:19.325250",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v4",
+      "timestamp": "2025-12-11T12:01:20.151710",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v5",
+      "timestamp": "2025-12-11T12:01:21.158102",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v6",
+      "timestamp": "2025-12-11T12:01:21.924755",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v7",
+      "timestamp": "2025-12-11T12:01:22.325892",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v8",
+      "timestamp": "2025-12-11T12:01:50.912853",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v9",
+      "timestamp": "2025-12-11T12:01:51.652180",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v10",
+      "timestamp": "2025-12-11T12:01:52.124435",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v11",
+      "timestamp": "2025-12-11T12:01:52.864307",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v12",
+      "timestamp": "2025-12-11T12:01:53.405028",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v13",
+      "timestamp": "2025-12-11T12:01:54.072814",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v14",
+      "timestamp": "2025-12-11T12:01:54.609286",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v15",
+      "timestamp": "2025-12-11T12:01:54.707195",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v16",
+      "timestamp": "2025-12-11T12:02:42.556780",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v17",
+      "timestamp": "2025-12-11T12:02:43.424639",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v18",
+      "timestamp": "2025-12-11T12:02:44.157161",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v19",
+      "timestamp": "2025-12-11T12:02:44.929019",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v20",
+      "timestamp": "2025-12-11T12:02:45.612630",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v21",
+      "timestamp": "2025-12-11T12:02:46.372755",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v22",
+      "timestamp": "2025-12-11T12:02:47.003711",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v23",
+      "timestamp": "2025-12-11T12:02:47.422887",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v24",
+      "timestamp": "2025-12-11T12:06:50.167473",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    },
+    {
+      "version": "v25",
+      "timestamp": "2025-12-14T18:49:17.043262",
+      "performance_metrics": {},
+      "file_path": "D:\\code3\\cognitive_fatigue_tracker\\models\\current_model.pkl"
+    }
+  ],
+  "created_at": "2025-12-11T12:01:16.801279",
+  "current_version": "v25",
+  "last_updated": "2025-12-14T18:49:17.043262"
+}

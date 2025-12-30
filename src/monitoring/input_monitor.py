@@ -181,6 +181,42 @@ class InputMonitor:
         """Get time since last activity"""
         return datetime.now() - self._last_activity_time
     
+    def get_keyboard_count(self, window_seconds: int = 60) -> int:
+        """
+        Get keyboard event count in time window.
+        
+        Args:
+            window_seconds: Time window to count events
+        
+        Returns:
+            Number of keyboard events
+        """
+        now = datetime.now()
+        cutoff = now - timedelta(seconds=window_seconds)
+        
+        return sum(
+            1 for activity in self._activity_queue
+            if activity.timestamp >= cutoff and activity.event_type == 'keyboard'
+        )
+    
+    def get_mouse_click_count(self, window_seconds: int = 60) -> int:
+        """
+        Get mouse click count in time window.
+        
+        Args:
+            window_seconds: Time window to count events
+        
+        Returns:
+            Number of mouse clicks (including scrolls)
+        """
+        now = datetime.now()
+        cutoff = now - timedelta(seconds=window_seconds)
+        
+        return sum(
+            1 for activity in self._activity_queue
+            if activity.timestamp >= cutoff and activity.event_type in ['mouse_click', 'mouse_scroll']
+        )
+    
     def reset_count(self):
         """Reset activity counter"""
         self._activity_count = 0

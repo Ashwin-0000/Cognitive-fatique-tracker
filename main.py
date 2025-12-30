@@ -34,6 +34,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 sys.excepthook = handle_exception
 
 
+
 def main():
     """Main application entry point"""
     try:

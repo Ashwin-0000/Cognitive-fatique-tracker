@@ -1,0 +1,76 @@
+﻿
+
+
+======================================================================
+GENERATING SYNTHETIC DATA AND TRAINING ML MODEL
+Profile: NORMAL, Sessions: 25
+======================================================================
+
+2025-12-11 12:02:35 - CognitiveFatigueTracker - INFO - Loaded model successfully
+2025-12-11 12:02:35 - CognitiveFatigueTracker - INFO - Loaded model with 1310 training samples
+python : Traceback 
+(most recent call 
+last):
+At line:1 char:1
++ python generate_tra
+ining_data.py 2>&1 | 
+Out-File -Encoding 
+utf8 train ...
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (Traceba   
+ ck (most recent     
+call last)::Stri    
+ng) [], RemoteEx    
+ception
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+  File "D:\code3\cogn
+itive_fatigue_tracker
+\generate_training_da
+ta.py", line 332, in 
+<module>
+    ml_predictor, 
+personalization = tra
+in_model_with_synthet
+ic_data(
+                     
+               ^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
+^^^^^
+  File "D:\code3\cogn
+itive_fatigue_tracker
+\generate_training_da
+ta.py", line 206, in 
+train_model_with_synt
+hetic_data
+    
+print(f"\n\U0001f4ca 
+Session {session_num 
++ 1}/{num_sessions}")
+  File "C:\Users\ashw
+i\AppData\Local\Progr
+ams\Python\Python311\
+Lib\encodings\cp1252.
+py", line 19, in 
+encode
+    return codecs.cha
+rmap_encode(input,sel
+f.errors,encoding_tab
+le)[0]
+           ^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
+^^^
+UnicodeEncodeError: 
+'charmap' codec 
+can't encode 
+character 
+'\U0001f4ca' in 
+position 2: 
+character maps to 
+<undefined>

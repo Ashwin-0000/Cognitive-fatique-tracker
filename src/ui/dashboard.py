@@ -1,4 +1,4 @@
-"""Dashboard panel showing current statistics"""
+"""Dashboard with refined spacing, alignment, and visual hierarchy"""
 import customtkinter as ctk
 from typing import Optional
 from src.ui.charts import MiniGaugeChart
@@ -6,161 +6,259 @@ from src.utils.helpers import format_duration
 
 
 class Dashboard(ctk.CTkFrame):
-    """Main dashboard showing key metrics"""
+    """Polished dashboard with perfect spacing and alignment"""
     
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, on_navigate=None, **kwargs):
         super().__init__(master, **kwargs)
         
         self.configure(fg_color="transparent")
+        self.on_navigate = on_navigate
         
-        # Configure grid layout (2x4 now)
-        self.grid_columnconfigure((0, 1, 2, 3), weight=1)
-        self.grid_rowconfigure((0, 1), weight=1)
+        # Grid with larger minimum sizes for bigger tiles
+        self.grid_columnconfigure(0, weight=2, minsize=400)  # Fatigue column - larger
+        self.grid_columnconfigure(1, weight=1, minsize=250)  # Metric tiles - larger
+        self.grid_columnconfigure(2, weight=1, minsize=250)
+        self.grid_columnconfigure(3, weight=1, minsize=250)
+        self.grid_rowconfigure(0, weight=1, uniform="row", minsize=220)  # Minimum row height
+        self.grid_rowconfigure(1, weight=1, uniform="row", minsize=220)
         
-        # Fatigue Score Card (large, spans 2 rows)
-        self.fatigue_card = self._create_card("Fatigue Score", row=0, column=0, rowspan=2)
-        self.fatigue_gauge = MiniGaugeChart(self.fatigue_card)
-        self.fatigue_gauge.pack(fill="both", expand=True, padx=10, pady=10)
+        # Fatigue Score (large, 2 rows)
+        self.fatigue_card = self._create_card(
+            title="Fatigue Score",
+            badge_text="LIVE",
+            badge_color="#8b5cf6",
+            icon="🧠",
+            row=0, column=0, rowspan=2,
+            on_click=on_navigate
+        )
         
-        # Work Time Card
-        self.work_time_card = self._create_card("Work Time", row=0, column=1)
-        self.work_time_label = ctk.CTkLabel(
-            self.work_time_card,
-            text="0m",
-            font=ctk.CTkFont(size=36, weight="bold")
-        )
-        self.work_time_label.pack(expand=True)
+        # Fatigue gauge - more padding for larger tile
+        gauge_container = ctk.CTkFrame(self.fatigue_card, fg_color="transparent")
+        gauge_container.pack(fill="both", expand=True, padx=30, pady=30)
         
-        # Session Time Card
-        self.session_time_card = self._create_card("Session Time", row=0, column=2)
-        self.session_time_label = ctk.CTkLabel(
-            self.session_time_card,
-            text="0m",
-            font=ctk.CTkFont(size=36, weight="bold")
-        )
-        self.session_time_label.pack(expand=True)
+        self.fatigue_gauge = MiniGaugeChart(gauge_container)
+        self.fatigue_gauge.pack(fill="both", expand=True)
+        if on_navigate:
+            self.fatigue_gauge.configure(cursor="hand2")
+            self.fatigue_gauge.bind("<Button-1>", lambda e: on_navigate())
         
-        # Blink Rate Card (NEW)
-        self.blink_card = self._create_card("Blink Rate", row=0, column=3)
-        self.blink_label = ctk.CTkLabel(
-            self.blink_card,
-            text="--",
-            font=ctk.CTkFont(size=36, weight="bold")
+        # Activity Rate
+        self.activity_card = self._create_card(
+            title="Activity rate",
+            badge_text="MONITORING",
+            badge_color="#f97316",
+            icon="📊",
+            row=0, column=1,
+            on_click=on_navigate
         )
-        self.blink_label.pack(expand=True)
-        self.blink_subtitle = ctk.CTkLabel(
-            self.blink_card,
-            text="blinks/min",
-            font=ctk.CTkFont(size=12),
-            text_color="#999999"
+        self.activity_label, self.activity_subtitle = self._create_metric_content(
+            self.activity_card, "0", "events/min"
         )
-        self.blink_subtitle.pack()
         
-        # Activity Rate Card
-        self.activity_card = self._create_card("Activity Rate", row=1, column=1)
-        self.activity_label = ctk.CTkLabel(
-            self.activity_card,
-            text="0",
-            font=ctk.CTkFont(size=36, weight="bold")
+        # Blink Rate
+        self.blink_card = self._create_card(
+            title="Blink rate",
+            badge_text="EYE TRACKING",
+            badge_color="#8b5cf6",
+            icon="👁️",
+            row=0, column=2,
+            on_click=on_navigate
         )
-        self.activity_label.pack(expand=True)
-        self.activity_subtitle = ctk.CTkLabel(
-            self.activity_card,
-            text="events/min",
-            font=ctk.CTkFont(size=12),
-            text_color="#999999"
+        self.blink_label, self.blink_subtitle = self._create_metric_content(
+            self.blink_card, "--", "blinks/min"
         )
-        self.activity_subtitle.pack()
         
-        # Next Break Card
-        self.break_card = self._create_card("Next Break", row=1, column=2)
-        self.break_label = ctk.CTkLabel(
-            self.break_card,
-            text="--",
-            font=ctk.CTkFont(size=36, weight="bold")
+        # Keystrokes
+        self.keystroke_card = self._create_card(
+            title="Keystrokes",
+            badge_text="INPUT",
+            badge_color="#10b981",
+            icon="⌨️",
+            row=0, column=3,
+            on_click=on_navigate
         )
-        self.break_label.pack(expand=True)
+        self.keystroke_label, _ = self._create_metric_content(
+            self.keystroke_card, "0", "keys pressed"
+        )
         
-        # Eye Tracking Status Card (NEW)
-        self.eye_status_card = self._create_card("Eye Tracking", row=1, column=3)
-        self.eye_status_label = ctk.CTkLabel(
-            self.eye_status_card,
-            text="Disabled",
-            font=ctk.CTkFont(size=18, weight="bold"),
-            text_color="#999999"
+        # Mouse Clicks
+        self.mouse_card = self._create_card(
+            title="Mouse clicks",
+            badge_text="INPUT",
+            badge_color="#10b981",
+            icon="🖱️",
+            row=1, column=1,
+            on_click=on_navigate
         )
-        self.eye_status_label.pack(expand=True)
+        self.mouse_label, _ = self._create_metric_content(
+            self.mouse_card, "0", "clicks"
+        )
+        
+        # Work Time
+        self.work_time_card = self._create_card(
+            title="Work time",
+            badge_text="TIMER",
+            badge_color="#3b82f6",
+            icon="⏱️",
+            row=1, column=2
+        )
+        self.work_time_label, _ = self._create_metric_content(
+            self.work_time_card, "0m", ""
+        )
+        
+        # Session Time
+        self.session_time_card = self._create_card(
+            title="Session time",
+            badge_text="TIMER",
+            badge_color="#14b8a6",
+            icon="⏲️",
+            row=1, column=3
+        )
+        self.session_time_label, _ = self._create_metric_content(
+            self.session_time_card, "0m", ""
+        )
+        
+        self.break_label = None
+        self.eye_status_label = None
     
-    def _create_card(self, title: str, row: int, column: int, rowspan: int = 1) -> ctk.CTkFrame:
-        """Create a metric card"""
-        card = ctk.CTkFrame(self, corner_radius=10)
-        card.grid(row=row, column=column, rowspan=rowspan, padx=10, pady=10, sticky="nsew")
+    def _create_card(self, title: str, badge_text: str, badge_color: str, 
+                     row: int, column: int, rowspan: int = 1, columnspan: int = 1, 
+                     icon: str = "", on_click=None) -> ctk.CTkFrame:
+        """Create card with perfect spacing and alignment"""
         
-        # Title
-        title_label = ctk.CTkLabel(
-            card,
-            text=title,
-            font=ctk.CTkFont(size=14, weight="bold"),
-            text_color="#999999"
+        card = ctk.CTkFrame(
+            self,
+            corner_radius=16,
+            fg_color="#1e293b",
+            border_width=1,
+            border_color="#334155"
         )
-        title_label.pack(pady=(15, 5))
+        # 16px spacing for more room
+        card.grid(row=row, column=column, rowspan=rowspan, columnspan=columnspan,
+                  padx=8, pady=8, sticky="nsew")
+        
+        # Header: fixed height with perfect alignment
+        header = ctk.CTkFrame(card, fg_color="transparent", height=60)
+        header.pack(fill="x", padx=25, pady=(25, 0))
+        header.pack_propagate(False)
+        
+        # Single row for perfect alignment - no nested frames
+        # Left side: Icon + Title
+        if icon:
+            icon_colors = {
+                "🧠": "#8b5cf6", "📊": "#f97316", "👁️": "#8b5cf6",
+                "⌨️": "#10b981", "🖱️": "#10b981", "⏱️": "#3b82f6", "⏲️": "#14b8a6"
+            }
+            icon_label = ctk.CTkLabel(
+                header, text=icon, font=ctk.CTkFont(size=18),
+                fg_color=icon_colors.get(icon, "#475569"),
+                corner_radius=10, width=36, height=36
+            )
+            icon_label.pack(side="left", padx=(0, 12), pady=12)  # Center vertically with padding
+        
+        # Title aligned with icon
+        title_label = ctk.CTkLabel(
+            header, text=title,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            text_color="#e2e8f0", anchor="w"
+        )
+        title_label.pack(side="left", pady=12)  # Same vertical padding as icon
+        
+        # Badge on the right, aligned
+        badge = ctk.CTkLabel(
+            header, text=badge_text,
+            font=ctk.CTkFont(size=10, weight="bold"),
+            text_color="#ffffff", fg_color=badge_color,
+            corner_radius=5, padx=12, pady=5, height=26
+        )
+        badge.pack(side="right", pady=12)  # Same vertical padding
+        
+        # Clickable with smooth animations
+        if on_click:
+            card.configure(cursor="hand2")
+            card.bind("<Button-1>", lambda e: on_click())
+            
+            # Smooth hover with glow effect
+            def on_enter(e):
+                card.configure(border_color="#3b82f6", border_width=2)
+                # Smooth transition animation
+                card.after(10, lambda: None)
+            
+            def on_leave(e):
+                card.configure(border_color="#475569", border_width=1)
+            
+            card.bind("<Enter>", on_enter)
+            card.bind("<Leave>", on_leave)
+            
+            def bind_recursive(w):
+                try:
+                    w.bind("<Button-1>", lambda e: on_click())
+                    w.configure(cursor="hand2")
+                    for c in w.winfo_children(): bind_recursive(c)
+                except: pass
+            card.after(100, lambda: bind_recursive(card))
         
         return card
     
-    def update_stats(
-        self,
-        fatigue_score: float = 0,
-        fatigue_level: str = "Low",
-        fatigue_color: str = "#4CAF50",
-        work_time_seconds: float = 0,
-        session_time_seconds: float = 0,
-        activity_rate: float = 0,
-        time_until_break_seconds: float = 0,
-        is_on_break: bool = False,
-        blink_rate: float = 0,
-        eye_tracking_enabled: bool = False
-    ):
-        """Update all dashboard statistics"""
+    def _create_metric_content(self, parent_card, value_text, unit_text):
+        """Create centered metric value and unit label"""
+        content = ctk.CTkFrame(parent_card, fg_color="transparent")
+        content.pack(fill="both", expand=True, padx=25, pady=(0, 25))  # More padding
         
-        # Update fatigue gauge
-        self.fatigue_gauge.update_score(fatigue_score, fatigue_level, fatigue_color)
+        # Value centered - larger font
+        value_label = ctk.CTkLabel(
+            content, text=value_text,
+            font=ctk.CTkFont(size=44, weight="bold"),  # Larger value
+            text_color="#ffffff"
+        )
+        value_label.pack(expand=True, pady=(10, 5))
         
-        # Update work time
-        self.work_time_label.configure(text=format_duration(work_time_seconds))
-        
-        # Update session time
-        self.session_time_label.configure(text=format_duration(session_time_seconds))
-        
-        # Update activity rate
-        self.activity_label.configure(text=f"{activity_rate:.0f}")
-        
-        # Update blink rate
-        if eye_tracking_enabled and blink_rate > 0:
-            # Color based on blink rate
-            if blink_rate >= 15:
-                blink_color = "#4CAF50"  # Green - Normal
-            elif blink_rate >= 10:
-                blink_color = "#FFC107"  # Yellow - Low
-            else:
-                blink_color = "#F44336"  # Red - Critical
-            
-            self.blink_label.configure(text=f"{blink_rate:.0f}", text_color=blink_color)
-        else:
-            self.blink_label.configure(text="--", text_color="#999999")
-        
-        # Update eye tracking status
-        if eye_tracking_enabled:
-            self.eye_status_label.configure(text="Active", text_color="#4CAF50")
-        else:
-            self.eye_status_label.configure(text="Disabled", text_color="#999999")
-        
-        # Update break timer
-        if is_on_break:
-            self.break_label.configure(text="On Break", text_color="#4CAF50")
-        elif time_until_break_seconds <= 0:
-            self.break_label.configure(text="Now!", text_color="#FFC107")
-        else:
-            self.break_label.configure(
-                text=format_duration(time_until_break_seconds),
-                text_color="#ffffff"
+        # Unit label - larger
+        if unit_text:
+            unit_label = ctk.CTkLabel(
+                content, text=unit_text,
+                font=ctk.CTkFont(size=13),  # Larger unit text
+                text_color="#94a3b8"
             )
+            unit_label.pack(pady=(0, 10))
+            return value_label, unit_label
+        
+        return value_label, None
+    
+    def update_stats(self, fatigue_score=None, work_time=None, session_time=None,
+                     activity_rate=None, blink_rate=None, next_break=None,
+                     eye_tracking_active=False, keystroke_count=None, mouse_count=None,
+                     fatigue_level=None, fatigue_color=None, **kwargs):  # Backward compatibility
+        """Update dashboard statistics with flexible parameter handling"""
+        
+        # Map legacy parameter names to current names
+        if fatigue_level is not None and fatigue_score is None:
+            fatigue_score = fatigue_level
+        
+        # Handle time parameters in seconds
+        if 'work_time_seconds' in kwargs and work_time is None:
+            work_time = int(kwargs['work_time_seconds'])
+        if 'session_time_seconds' in kwargs and session_time is None:
+            session_time = int(kwargs['session_time_seconds'])
+        if 'time_until_break_seconds' in kwargs and next_break is None:
+            next_break = int(kwargs['time_until_break_seconds'])
+        
+        # Map eye tracking parameter variations
+        if 'eye_tracking_enabled' in kwargs:
+            eye_tracking_active = kwargs['eye_tracking_enabled']
+        
+        # Update UI elements
+        if fatigue_score is not None:
+            self.fatigue_gauge.update_value(fatigue_score)
+        if work_time is not None:
+            self.work_time_label.configure(text=format_duration(work_time))
+        if session_time is not None:
+            self.session_time_label.configure(text=format_duration(session_time))
+        if activity_rate is not None:
+            self.activity_label.configure(text=f"{int(activity_rate)}")
+        if blink_rate is not None:
+            self.blink_label.configure(text=f"{int(blink_rate)}")
+        if keystroke_count is not None:
+            self.keystroke_label.configure(text=f"{int(keystroke_count)}")
+        if mouse_count is not None:
+            self.mouse_label.configure(text=f"{int(mouse_count)}")
