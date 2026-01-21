@@ -5,7 +5,7 @@ from typing import List
 
 class MotivationalQuotes:
     """Provides motivational quotes for breaks and achievements"""
-    
+
     BREAK_QUOTES = [
         "Take a break - your mind will thank you! 🧠",
         "Rest is not idleness - it's essential for productivity.",
@@ -23,7 +23,7 @@ class MotivationalQuotes:
         "Rest is progress in disguise.",
         "Better work awaits after a good break."
     ]
-    
+
     ACHIEVEMENT_QUOTES = [
         "Outstanding achievement! Keep up the great work! 🎉",
         "You're building excellent work habits!",
@@ -36,7 +36,7 @@ class MotivationalQuotes:
         "Remarkable commitment to your wellbeing!",
         "You're crushing your goals!"
     ]
-    
+
     FATIGUE_QUOTES = [
         "Listen to your body - it's asking for rest.",
         "Pushing through fatigue reduces quality.",
@@ -47,7 +47,7 @@ class MotivationalQuotes:
         "Take care of yourself first.",
         "Quality over quantity - rest matters."
     ]
-    
+
     SESSION_START_QUOTES = [
         "Ready to do great work! Let's go! 🚀",
         "Focus mode: activated!",
@@ -58,30 +58,30 @@ class MotivationalQuotes:
         "New session, new possibilities.",
         "Your productivity journey continues!"
     ]
-    
+
     @classmethod
     def get_break_quote(cls) -> str:
         """Get a random break quote"""
         return random.choice(cls.BREAK_QUOTES)
-    
+
     @classmethod
     def get_achievement_quote(cls) -> str:
         """Get a random achievement quote"""
         return random.choice(cls.ACHIEVEMENT_QUOTES)
-    
+
     @classmethod
     def get_fatigue_quote(cls) -> str:
         """Get a random fatigue quote"""
         return random.choice(cls.FATIGUE_QUOTES)
-    
+
     @classmethod
     def get_session_start_quote(cls) -> str:
         """Get a random session start quote"""
         return random.choice(cls.SESSION_START_QUOTES)
-    
+
     @classmethod
     def get_random_quote(cls) -> str:
         """Get any random quote"""
-        all_quotes = (cls.BREAK_QUOTES + cls.ACHIEVEMENT_QUOTES + 
-                     cls.FATIGUE_QUOTES + cls.SESSION_START_QUOTES)
+        all_quotes = (cls.BREAK_QUOTES + cls.ACHIEVEMENT_QUOTES +
+                      cls.FATIGUE_QUOTES + cls.SESSION_START_QUOTES)
         return random.choice(all_quotes)

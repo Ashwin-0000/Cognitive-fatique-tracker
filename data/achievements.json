@@ -1,0 +1,37 @@
+{
+  "first_session": {
+    "unlocked": false,
+    "unlocked_at": null,
+    "progress": 0.0
+  },
+  "streak_7": {
+    "unlocked": false,
+    "unlocked_at": null,
+    "progress": 0.0
+  },
+  "streak_30": {
+    "unlocked": false,
+    "unlocked_at": null,
+    "progress": 0.0
+  },
+  "break_master": {
+    "unlocked": false,
+    "unlocked_at": null,
+    "progress": 25
+  },
+  "marathon_worker": {
+    "unlocked": false,
+    "unlocked_at": null,
+    "progress": 0.0
+  },
+  "early_bird": {
+    "unlocked": false,
+    "unlocked_at": null,
+    "progress": 0.0
+  },
+  "night_owl": {
+    "unlocked": false,
+    "unlocked_at": null,
+    "progress": 0.0
+  }
+}

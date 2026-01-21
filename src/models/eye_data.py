@@ -5,7 +5,7 @@ from typing import Optional
 
 class EyeData:
     """Represents eye tracking metrics at a point in time"""
-    
+
     def __init__(
         self,
         blink_rate: float = 0.0,
@@ -14,7 +14,7 @@ class EyeData:
     ):
         """
         Initialize eye data.
-        
+
         Args:
             blink_rate: Blinks per minute
             total_blinks: Total blinks in session
@@ -23,19 +23,19 @@ class EyeData:
         self.blink_rate = blink_rate
         self.total_blinks = total_blinks
         self.timestamp = timestamp or datetime.now()
-    
+
     def is_normal(self) -> bool:
         """Check if blink rate is in normal range (15-20 bpm)"""
         return 15 <= self.blink_rate <= 20
-    
+
     def is_low(self) -> bool:
         """Check if blink rate is low (< 15 bpm)"""
         return self.blink_rate < 15
-    
+
     def is_critical(self) -> bool:
         """Check if blink rate is critically low (< 10 bpm)"""
         return self.blink_rate < 10
-    
+
     def get_status(self) -> str:
         """Get status description"""
         if self.blink_rate >= 15:
@@ -44,7 +44,7 @@ class EyeData:
             return "Low"
         else:
             return "Critical"
-    
+
     def get_color(self) -> str:
         """Get color representation for UI"""
         if self.blink_rate >= 15:
@@ -53,7 +53,7 @@ class EyeData:
             return "#FFC107"  # Yellow
         else:
             return "#F44336"  # Red
-    
+
     def to_dict(self) -> dict:
         """Convert to dictionary for storage"""
         return {
@@ -62,7 +62,7 @@ class EyeData:
             'timestamp': self.timestamp.isoformat(),
             'status': self.get_status()
         }
-    
+
     @classmethod
     def from_dict(cls, data: dict) -> 'EyeData':
         """Create EyeData from dictionary"""
@@ -71,6 +71,6 @@ class EyeData:
             total_blinks=data['total_blinks'],
             timestamp=datetime.fromisoformat(data['timestamp'])
         )
-    
+
     def __repr__(self) -> str:
         return f"EyeData(rate={self.blink_rate:.1f} bpm, status={self.get_status()})"

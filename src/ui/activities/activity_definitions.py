@@ -46,7 +46,7 @@ ACTIVITIES = {
         effectiveness_rating=4.0,
         color="#3B82F6"  # Blue
     ),
-    
+
     "eye_rapid_blink": Activity(
         id="eye_rapid_blink",
         name="Rapid Blinking Exercise",
@@ -63,7 +63,7 @@ ACTIVITIES = {
         effectiveness_rating=3.5,
         color="#3B82F6"
     ),
-    
+
     "breathing_physiological_sigh": Activity(
         id="breathing_physiological_sigh",
         name="Physiological Sigh",
@@ -81,7 +81,7 @@ ACTIVITIES = {
         effectiveness_rating=5.0,
         color="#10B981"  # Green
     ),
-    
+
     "breathing_deep": Activity(
         id="breathing_deep",
         name="Deep Diaphragmatic Breathing",
@@ -100,7 +100,7 @@ ACTIVITIES = {
         effectiveness_rating=5.0,
         color="#10B981"
     ),
-    
+
     "breathing_box": Activity(
         id="breathing_box",
         name="Box Breathing (4-4-4-4)",
@@ -119,7 +119,7 @@ ACTIVITIES = {
         effectiveness_rating=4.5,
         color="#10B981"
     ),
-    
+
     "physical_shoulder_release": Activity(
         id="physical_shoulder_release",
         name="Shoulder & Neck Release",
@@ -138,7 +138,7 @@ ACTIVITIES = {
         effectiveness_rating=4.0,
         color="#F59E0B"  # Orange
     ),
-    
+
     "physical_wrist_stretch": Activity(
         id="physical_wrist_stretch",
         name="Wrist & Finger Refresher",
@@ -157,7 +157,7 @@ ACTIVITIES = {
         effectiveness_rating=3.5,
         color="#F59E0B"
     ),
-    
+
     "physical_walk": Activity(
         id="physical_walk",
         name="Quick Walk Break",
@@ -176,7 +176,7 @@ ACTIVITIES = {
         effectiveness_rating=4.5,
         color="#F59E0B"
     ),
-    
+
     "physical_desk_exercises": Activity(
         id="physical_desk_exercises",
         name="Desk Exercise Combo",
@@ -195,7 +195,7 @@ ACTIVITIES = {
         effectiveness_rating=4.5,
         color="#F59E0B"
     ),
-    
+
     "meditation_mindful_breathing": Activity(
         id="meditation_mindful_breathing",
         name="Mindful Breathing Meditation",
@@ -216,7 +216,7 @@ ACTIVITIES = {
         effectiveness_rating=4.5,
         color="#8B5CF6"  # Purple
     ),
-    
+
     "meditation_body_scan": Activity(
         id="meditation_body_scan",
         name="Quick Body Scan",
@@ -237,7 +237,7 @@ ACTIVITIES = {
         effectiveness_rating=4.0,
         color="#8B5CF6"
     ),
-    
+
     "combo_quick_refresh": Activity(
         id="combo_quick_refresh",
         name="Complete Quick Refresh",
@@ -254,7 +254,7 @@ ACTIVITIES = {
         effectiveness_rating=5.0,
         color="#EC4899"  # Pink
     ),
-    
+
     "combo_energizer": Activity(
         id="combo_energizer",
         name="Energy Boost Combo",

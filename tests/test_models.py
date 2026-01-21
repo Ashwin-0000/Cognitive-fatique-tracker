@@ -94,9 +94,12 @@ class TestFatigueScore(unittest.TestCase):
         score2 = FatigueScore(score=50.0)
         
         history.add_score(score1)
+        history.add_score(FatigueScore(score=35.0))
+        history.add_score(FatigueScore(score=40.0))
+        history.add_score(FatigueScore(score=45.0))
         history.add_score(score2)
         
-        self.assertEqual(len(history.scores), 2)
+        self.assertEqual(len(history.scores), 5)
         self.assertEqual(history.get_average(), 40.0)
         self.assertEqual(history.get_trend(), 'increasing')
 

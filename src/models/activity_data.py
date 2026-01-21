@@ -5,7 +5,7 @@ from typing import Literal, Optional
 
 class ActivityData:
     """Represents a single activity event (keyboard or mouse)"""
-    
+
     def __init__(
         self,
         event_type: Literal['keyboard', 'mouse_click', 'mouse_move', 'mouse_scroll'],
@@ -14,7 +14,7 @@ class ActivityData:
     ):
         """
         Initialize an activity event.
-        
+
         Args:
             event_type: Type of activity event
             timestamp: When the event occurred (defaults to now)
@@ -23,7 +23,7 @@ class ActivityData:
         self.event_type = event_type
         self.timestamp = timestamp or datetime.now()
         self.details = details or {}
-    
+
     def to_dict(self) -> dict:
         """Convert to dictionary for storage"""
         return {
@@ -31,7 +31,7 @@ class ActivityData:
             'timestamp': self.timestamp.isoformat(),
             'details': self.details
         }
-    
+
     @classmethod
     def from_dict(cls, data: dict) -> 'ActivityData':
         """Create ActivityData from dictionary"""
@@ -40,6 +40,6 @@ class ActivityData:
             timestamp=datetime.fromisoformat(data['timestamp']),
             details=data.get('details', {})
         )
-    
+
     def __repr__(self) -> str:
         return f"ActivityData(type={self.event_type}, time={self.timestamp.strftime('%H:%M:%S')})"

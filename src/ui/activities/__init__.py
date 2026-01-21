@@ -5,7 +5,7 @@ from .activity_demo_window import ActivityDemoWindow
 
 __all__ = [
     'Activity',
-    'ActivityCategory', 
+    'ActivityCategory',
     'get_all_activities',
     'get_activities_by_category',
     'get_activity_by_id',
