@@ -10,6 +10,7 @@ from src.ui.charts import ActivityChart, FatigueChart, BlinkRateChart
 from src.ui.settings_dialog import SettingsDialog  
 from src.ui.keyboard_handler import KeyboardHandler
 from src.ui.system_tray import SystemTray
+from src.ui.activities.activity_browser import ActivityBrowser
 from PIL import Image, ImageTk
 import os
 from src.storage.config_manager import ConfigManager
@@ -19,6 +20,7 @@ from src.monitoring.time_tracker import TimeTracker
 from src.monitoring.eye_tracker import EyeTracker
 from src.analysis.fatigue_analyzer import FatigueAnalyzer
 from src.analysis.alert_manager import AlertManager
+from src.analysis.activity_manager import ActivityManager
 from src.models.session import Session
 from src.models.activity_data import ActivityData
 from src.utils.logger import default_logger as logger
@@ -36,7 +38,7 @@ class MainWindow(ctk.CTk):
         
         # Configure window
         self.title("Cognitive Fatigue Tracker")
-        self.geometry("1200x800")
+        self.geometry("1400x900")
         
         # Set theme
         theme = self.config_manager.get('ui.theme', 'dark')
@@ -49,6 +51,7 @@ class MainWindow(ctk.CTk):
         self.eye_tracker: Optional[EyeTracker] = None
         self.fatigue_analyzer = FatigueAnalyzer()
         self.alert_manager = AlertManager(on_alert=self._show_alert)
+        self.activity_manager = ActivityManager(data_manager=self.data_manager)
         
         # Initialize keyboard shortcuts and system tray
         self.keyboard_handler: Optional[KeyboardHandler] = None
@@ -141,9 +144,9 @@ class MainWindow(ctk.CTk):
         nav_items = [
             ("📊", "Dashboard"),
             ("📈", "Analytics"),
+            ("⚡", "Activities"),
             ("🎯", "Statistics"),
-            ("⚙️", "Settings"),
-            ("ℹ️", "About")
+            ("⚙️", "Settings")
         ]
         
         for icon, name in nav_items:
@@ -281,9 +284,9 @@ class MainWindow(ctk.CTk):
         )
         self.breadcrumb_current.pack(side="left")
         
-        # Content area with pages - fill all available space
+        # Content area with pages - fill all available space (no padding for edge-to-edge design)
         self.content_frame = ctk.CTkFrame(main_container, fg_color="transparent")
-        self.content_frame.grid(row=2, column=0, sticky="nsew", padx=10, pady=10)
+        self.content_frame.grid(row=2, column=0, sticky="nsew", padx=0, pady=0)
         self.content_frame.grid_columnconfigure(0, weight=1)
         self.content_frame.grid_rowconfigure(0, weight=1)
         
@@ -291,9 +294,9 @@ class MainWindow(ctk.CTk):
         self.pages = {}
         self._create_dashboard_page()
         self._create_analytics_page()
+        self._create_activities_page()
         self._create_statistics_page()
         self._create_settings_page()
-        self._create_about_page()
         
         # Show initial page
         self._switch_page("Dashboard")
@@ -412,6 +415,15 @@ class MainWindow(ctk.CTk):
         
         # Keep references
         self.pages["Analytics"] = page
+    
+    def _create_activities_page(self):
+        """Create Activities page with refresh activity browser"""
+        # Activity browser widget placed directly (no wrapper needed)
+        self.activity_browser = ActivityBrowser(self.content_frame)
+        self.activity_browser.grid(row=0, column=0, sticky="nsew")
+        
+        # Store reference for page switching
+        self.pages["Activities"] = self.activity_browser
     
     def _create_statistics_page(self):
         """Create Statistics page"""
@@ -657,15 +669,20 @@ class MainWindow(ctk.CTk):
     
     def _create_about_page(self):
         """Create modern About page with financial dashboard styling"""
-        # Use regular frame - no scroll, but fills entire width
-        page = ctk.CTkFrame(self.content_frame, fg_color="#2d2d2d")
+        # Wrapper frame to force full width
+        wrapper = ctk.CTkFrame(self.content_frame, fg_color="#2d2d2d")
+        wrapper.grid_columnconfigure(0, weight=1)
+        wrapper.grid_rowconfigure(0, weight=1)
+        
+        # Scrollable page - fills the wrapper completely
+        page = ctk.CTkScrollableFrame(
+            wrapper,
+            fg_color="#2d2d2d",
+            scrollbar_button_color="#4a4a4a",
+            scrollbar_button_hover_color="#5a5a5a"
+        )
+        page.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
         page.grid_columnconfigure(0, weight=1)
-        
-        # Content container (no scrolling to avoid width constraints)
-        scroll = ctk.CTkFrame(page, fg_color="#2d2d2d")
-        scroll.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
-        scroll.grid_columnconfigure(0, weight=1)
-        
         
         # Header section with modern gradient-style card
         header_frame = ctk.CTkFrame(page, fg_color="#2d3548", corner_radius=16, border_width=0)
@@ -865,7 +882,7 @@ class MainWindow(ctk.CTk):
             text_color="#3b82f6"
         ).pack(pady=10)
         
-        self.pages["About"] = page
+        self.pages["About"] = wrapper
     
     def _switch_page(self, page_name):
         """Switch between pages"""
@@ -1009,12 +1026,15 @@ class MainWindow(ctk.CTk):
         
         if self.time_tracker.is_on_break:
             self.time_tracker.end_break()
-            self.break_button.configure(text="Take Break")
+            self.break_button.configure(text="☕ Break")
             logger.info("Ended break")
         else:
             self.time_tracker.start_break()
-            self.break_button.configure(text="End Break")
+            self.break_button.configure(text="⏸️ End Break")
             logger.info("Started break")
+            
+            # Navigate to Activities page to help user choose a refresh activity
+            self._switch_page("Activities")
     
     def _on_activity(self, activity: ActivityData):
         """Handle activity event"""

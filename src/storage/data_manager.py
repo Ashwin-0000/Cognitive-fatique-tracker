@@ -76,6 +76,21 @@ class DataManager:
             )
         """)
         
+        # Activity completions table (for refresh activities)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS activity_completions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id TEXT,
+                activity_id TEXT NOT NULL,
+                started_at TEXT NOT NULL,
+                completed_at TEXT NOT NULL,
+                duration_seconds INTEGER,
+                fatigue_before REAL,
+                fatigue_after REAL,
+                FOREIGN KEY (session_id) REFERENCES sessions(session_id)
+            )
+        """)
+        
         # Create indices for better query performance
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_activities_timestamp 
@@ -84,6 +99,10 @@ class DataManager:
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_fatigue_timestamp 
             ON fatigue_scores(timestamp)
+        """)
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_activity_completions_timestamp 
+            ON activity_completions(completed_at)
         """)
         
         conn.commit()
@@ -294,6 +313,77 @@ class DataManager:
         
         return scores
     
+    # Activity completion operations (for refresh activities)
+    def log_activity_completion(
+        self,
+        session_id: Optional[str],
+        activity_id: str,
+        started_at: datetime,
+        completed_at: datetime,
+        duration_seconds: int,
+        fatigue_before: Optional[float] = None,
+        fatigue_after: Optional[float] = None
+    ):
+        """Log a completed refresh activity"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            INSERT INTO activity_completions 
+            (session_id, activity_id, started_at, completed_at, duration_seconds, fatigue_before, fatigue_after)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (
+            session_id,
+            activity_id,
+            started_at.isoformat(),
+            completed_at.isoformat(),
+            duration_seconds,
+            fatigue_before,
+            fatigue_after
+        ))
+        
+        conn.commit()
+        conn.close()
+        logger.debug(f"Logged activity completion: {activity_id}")
+    
+    def get_activity_history(self, session_id: Optional[str] = None, days: int = 30) -> List[dict]:
+        """Get activity completion history"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        cutoff = (datetime.now() - timedelta(days=days)).isoformat()
+        
+        if session_id:
+            cursor.execute("""
+                SELECT * FROM activity_completions 
+                WHERE session_id = ? AND completed_at >= ?
+                ORDER BY completed_at DESC
+            """, (session_id, cutoff))
+        else:
+            cursor.execute("""
+                SELECT * FROM activity_completions 
+                WHERE completed_at >= ?
+                ORDER BY completed_at DESC
+            """, (cutoff,))
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        history = []
+        for row in rows:
+            history.append({
+                'id': row['id'],
+                'session_id': row['session_id'],
+                'activity_id': row['activity_id'],
+                'started_at': datetime.fromisoformat(row['started_at']),
+                'completed_at': datetime.fromisoformat(row['completed_at']),
+                'duration_seconds': row['duration_seconds'],
+                'fatigue_before': row['fatigue_before'],
+                'fatigue_after': row['fatigue_after']
+            })
+        
+        return history
+    
     # Cleanup operations
     def cleanup_old_data(self, days: int = 30):
         """Remove data older than specified days"""
@@ -304,6 +394,7 @@ class DataManager:
         
         cursor.execute("DELETE FROM activities WHERE timestamp < ?", (cutoff,))
         cursor.execute("DELETE FROM fatigue_scores WHERE timestamp < ?", (cutoff,))
+        cursor.execute("DELETE FROM activity_completions WHERE completed_at < ?", (cutoff,))
         cursor.execute("DELETE FROM sessions WHERE start_time < ?", (cutoff,))
         
         conn.commit()

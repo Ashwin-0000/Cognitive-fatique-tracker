@@ -25,8 +25,6 @@ class Dashboard(ctk.CTkFrame):
         # Fatigue Score (large, 2 rows)
         self.fatigue_card = self._create_card(
             title="Fatigue Score",
-            badge_text="LIVE",
-            badge_color="#8b5cf6",
             icon="🧠",
             row=0, column=0, rowspan=2,
             on_click=on_navigate
@@ -45,8 +43,6 @@ class Dashboard(ctk.CTkFrame):
         # Activity Rate
         self.activity_card = self._create_card(
             title="Activity rate",
-            badge_text="MONITORING",
-            badge_color="#f97316",
             icon="📊",
             row=0, column=1,
             on_click=on_navigate
@@ -58,8 +54,6 @@ class Dashboard(ctk.CTkFrame):
         # Blink Rate
         self.blink_card = self._create_card(
             title="Blink rate",
-            badge_text="EYE TRACKING",
-            badge_color="#8b5cf6",
             icon="👁️",
             row=0, column=2,
             on_click=on_navigate
@@ -71,8 +65,6 @@ class Dashboard(ctk.CTkFrame):
         # Keystrokes
         self.keystroke_card = self._create_card(
             title="Keystrokes",
-            badge_text="INPUT",
-            badge_color="#10b981",
             icon="⌨️",
             row=0, column=3,
             on_click=on_navigate
@@ -84,8 +76,6 @@ class Dashboard(ctk.CTkFrame):
         # Mouse Clicks
         self.mouse_card = self._create_card(
             title="Mouse clicks",
-            badge_text="INPUT",
-            badge_color="#10b981",
             icon="🖱️",
             row=1, column=1,
             on_click=on_navigate
@@ -97,8 +87,6 @@ class Dashboard(ctk.CTkFrame):
         # Work Time
         self.work_time_card = self._create_card(
             title="Work time",
-            badge_text="TIMER",
-            badge_color="#3b82f6",
             icon="⏱️",
             row=1, column=2
         )
@@ -109,8 +97,6 @@ class Dashboard(ctk.CTkFrame):
         # Session Time
         self.session_time_card = self._create_card(
             title="Session time",
-            badge_text="TIMER",
-            badge_color="#14b8a6",
             icon="⏲️",
             row=1, column=3
         )
@@ -121,10 +107,10 @@ class Dashboard(ctk.CTkFrame):
         self.break_label = None
         self.eye_status_label = None
     
-    def _create_card(self, title: str, badge_text: str, badge_color: str, 
-                     row: int, column: int, rowspan: int = 1, columnspan: int = 1, 
+    def _create_card(self, title: str, row: int, column: int, 
+                     rowspan: int = 1, columnspan: int = 1, 
                      icon: str = "", on_click=None) -> ctk.CTkFrame:
-        """Create card with perfect spacing and alignment"""
+        """Create simplified card with only icon and heading"""
         
         card = ctk.CTkFrame(
             self,
@@ -133,17 +119,15 @@ class Dashboard(ctk.CTkFrame):
             border_width=1,
             border_color="#334155"
         )
-        # 16px spacing for more room
         card.grid(row=row, column=column, rowspan=rowspan, columnspan=columnspan,
                   padx=8, pady=8, sticky="nsew")
         
-        # Header: fixed height with perfect alignment
-        header = ctk.CTkFrame(card, fg_color="transparent", height=60)
+        # Header: simple icon + title layout
+        header = ctk.CTkFrame(card, fg_color="transparent", height=50)
         header.pack(fill="x", padx=25, pady=(25, 0))
         header.pack_propagate(False)
         
-        # Single row for perfect alignment - no nested frames
-        # Left side: Icon + Title
+        # Icon + Title in a row, left-aligned
         if icon:
             icon_colors = {
                 "🧠": "#8b5cf6", "📊": "#f97316", "👁️": "#8b5cf6",
@@ -154,7 +138,7 @@ class Dashboard(ctk.CTkFrame):
                 fg_color=icon_colors.get(icon, "#475569"),
                 corner_radius=10, width=36, height=36
             )
-            icon_label.pack(side="left", padx=(0, 12), pady=12)  # Center vertically with padding
+            icon_label.pack(side="left", padx=(0, 12), pady=7)
         
         # Title aligned with icon
         title_label = ctk.CTkLabel(
@@ -162,16 +146,7 @@ class Dashboard(ctk.CTkFrame):
             font=ctk.CTkFont(size=14, weight="bold"),
             text_color="#e2e8f0", anchor="w"
         )
-        title_label.pack(side="left", pady=12)  # Same vertical padding as icon
-        
-        # Badge on the right, aligned
-        badge = ctk.CTkLabel(
-            header, text=badge_text,
-            font=ctk.CTkFont(size=10, weight="bold"),
-            text_color="#ffffff", fg_color=badge_color,
-            corner_radius=5, padx=12, pady=5, height=26
-        )
-        badge.pack(side="right", pady=12)  # Same vertical padding
+        title_label.pack(side="left", pady=7)
         
         # Clickable with smooth animations
         if on_click:
@@ -181,11 +156,9 @@ class Dashboard(ctk.CTkFrame):
             # Smooth hover with glow effect
             def on_enter(e):
                 card.configure(border_color="#3b82f6", border_width=2)
-                # Smooth transition animation
-                card.after(10, lambda: None)
             
             def on_leave(e):
-                card.configure(border_color="#475569", border_width=1)
+                card.configure(border_color="#334155", border_width=1)
             
             card.bind("<Enter>", on_enter)
             card.bind("<Leave>", on_leave)
