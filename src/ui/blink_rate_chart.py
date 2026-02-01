@@ -68,33 +68,52 @@ class BlinkRateChart(ctk.CTkFrame):
         self.blink_rates.append(blink_rate)
         self.update_plot()
 
+    def update_data(self, history: list):
+        """
+        Update chart with history data.
+        
+        Args:
+            history: List of (datetime, value) tuples
+        """
+        self.timestamps.clear()
+        self.blink_rates.clear()
+        
+        for t, v in history:
+            self.timestamps.append(t)
+            self.blink_rates.append(v)
+            
+        self.update_plot()
+
     def update_plot(self):
         """Update the plot with current data"""
         if len(self.blink_rates) == 0:
             return
 
-        # Create time labels (last N seconds/minutes)
-        time_labels = [f"{i}" for i in range(len(self.blink_rates))]
-
         # Update line data
-        self.line.set_data(range(len(self.blink_rates)),
-                           list(self.blink_rates))
+        # Use integers for x-axis to keep it simple, or formatted times if needed
+        # For blinking chart, simple index is usually fine for scrolling view
+        self.line.set_data(range(len(self.blink_rates)), list(self.blink_rates))
 
-        # Auto-scale
-        self.ax.relim()
-        self.ax.autoscale_view()
+        # Auto-scale x-axis
+        self.ax.set_xlim(0, max(len(self.blink_rates) - 1, 1))
 
-        # Set y-axis limits with some padding
+        # Smart Y-axis scaling
+        # We always want to see 0-30 range (including normal range 15-20)
+        # But if data goes higher, expand the view
+        
         if len(self.blink_rates) > 0:
-            min_rate = min(self.blink_rates)
-            max_rate = max(self.blink_rates)
-            padding = (max_rate - min_rate) * \
-                0.2 if max_rate != min_rate else 5
-            self.ax.set_ylim(max(0, min_rate - padding), max_rate + padding)
+            max_val = max(self.blink_rates)
+        else:
+            max_val = 0
+            
+        # Minimum ceiling of 30, or 20% above max data
+        y_max = max(30, max_val * 1.2)
+        
+        self.ax.set_ylim(0, y_max)
 
         # Redraw
         self.canvas.draw()
-
+        
     def clear(self):
         """Clear all data"""
         self.timestamps.clear()

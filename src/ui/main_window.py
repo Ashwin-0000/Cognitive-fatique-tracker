@@ -11,6 +11,7 @@ from src.ui.settings_dialog import SettingsDialog
 from src.ui.keyboard_handler import KeyboardHandler
 from src.ui.system_tray import SystemTray
 from src.ui.activities.activity_browser import ActivityBrowser
+from src.ui.activities.activity_definitions import Activity
 from PIL import Image, ImageTk
 import os
 from src.storage.config_manager import ConfigManager
@@ -50,7 +51,10 @@ class MainWindow(ctk.CTk):
         self.time_tracker: Optional[TimeTracker] = None
         self.eye_tracker: Optional[EyeTracker] = None
         self.fatigue_analyzer = FatigueAnalyzer()
-        self.alert_manager = AlertManager(on_alert=self._show_alert)
+        self.alert_manager = AlertManager(
+            on_alert=self._show_alert,
+            recommendation_provider=self.fatigue_analyzer.get_smart_recommendations
+        )
         self.activity_manager = ActivityManager(data_manager=self.data_manager)
 
         # Initialize keyboard shortcuts and system tray
@@ -80,8 +84,7 @@ class MainWindow(ctk.CTk):
         # Start update loop
         self.update_interval = self.config_manager.get(
             'ui.update_interval_ms', 1000)
-        if self.eye_tracker:
-            self._start_update_loop()
+        self._start_update_loop()
 
         # Handle window close
         self.protocol("WM_DELETE_WINDOW", self._on_close)
@@ -506,7 +509,7 @@ class MainWindow(ctk.CTk):
     def _create_activities_page(self):
         """Create Activities page with refresh activity browser"""
         # Activity browser widget placed directly (no wrapper needed)
-        self.activity_browser = ActivityBrowser(self.content_frame)
+        self.activity_browser = ActivityBrowser(self.content_frame, analyzer=self.fatigue_analyzer)
         self.activity_browser.grid(row=0, column=0, sticky="nsew")
 
         # Store reference for page switching
@@ -1274,6 +1277,10 @@ class MainWindow(ctk.CTk):
         """Handle activity event"""
         if self.current_session:
             self.current_session.total_activity_count += 1
+            if activity.event_type == 'keyboard':
+                self.current_session.keyboard_count += 1
+            elif activity.event_type == 'mouse_click':
+                self.current_session.mouse_click_count += 1
             # Optionally save to database (batched for performance)
             # self.data_manager.save_activity(activity, self.current_session.session_id)
 
@@ -1347,9 +1354,9 @@ class MainWindow(ctk.CTk):
 
             # Update dashboard with error handling
             try:
-                # Get keystroke and mouse counts
-                keystroke_count = self.input_monitor.get_keyboard_count() if self.input_monitor else 0
-                mouse_count = self.input_monitor.get_mouse_click_count() if self.input_monitor else 0
+                # Get keystroke and mouse counts (cumulative)
+                keystroke_count = self.current_session.keyboard_count if self.current_session else 0
+                mouse_count = self.current_session.mouse_click_count if self.current_session else 0
 
                 self.dashboard.update_stats(
                     fatigue_score=fatigue_score.score,
@@ -1420,7 +1427,7 @@ class MainWindow(ctk.CTk):
             # Check alerts with error handling
             try:
                 self.alert_manager.check_break_reminder(
-                    time_until_break, is_on_break)
+                    time_until_break, is_on_break, fatigue_score)
             except Exception as e:
                 logger.error(f"Error checking break reminder: {e}")
 
@@ -1472,10 +1479,38 @@ class MainWindow(ctk.CTk):
         except Exception as e:
             logger.error(f"Failed to create blink chart: {e}")
 
-    def _show_alert(self, title: str, message: str):
+    def _show_alert(self, title: str, message: str, activity: Optional[Activity] = None):
         """Show alert dialog"""
-        # Run in main thread
-        self.after(0, lambda: messagebox.showinfo(title, message))
+        # Ensure it runs on UI thread
+        def show():
+            if activity:
+                # Add prompt to message
+                full_message = f"{message}\n\n👉 Recommended: {activity.name}\n\nWould you like to try it now?"
+                
+                # Use Yes/No dialog (native)
+                should_try = messagebox.askyesno(title, full_message)
+                
+                if should_try:
+                    self._try_activity(activity)
+            else:
+                # Standard info dialog
+                messagebox.showinfo(title, message)
+
+        self.after(0, show)
+        
+    def _try_activity(self, activity: Activity):
+        """Switch to activity tab and start activity"""
+        try:
+            # Switch to activities page
+            self._switch_page("Activities")
+            
+            # Start activity
+            if hasattr(self, 'activity_browser'):
+                # Short delay to ensure page is visible
+                self.after(100, lambda: self.activity_browser.start_activity(activity))
+                
+        except Exception as e:
+            logger.error(f"Failed to start activity from alert: {e}")
 
     def _show_session_summary(self):
         """Show session summary dialog"""
@@ -1490,6 +1525,8 @@ Duration: {stats['total_duration_minutes']:.1f} minutes
 Work Time: {stats['work_duration_minutes']:.1f} minutes
 Breaks Taken: {stats['break_count']}
 Total Activities: {stats['total_activity_count']}
+Keystrokes: {stats.get('keyboard_count', 0)}
+Mouse Clicks: {stats.get('mouse_click_count', 0)}
 
 Great work! Remember to take regular breaks.
         """

@@ -24,6 +24,8 @@ class Session:
         self.breaks: List[dict] = []  # List of {start, end, duration}
         self.is_active = True
         self.total_activity_count = 0
+        self.keyboard_count = 0
+        self.mouse_click_count = 0
 
     @staticmethod
     def _generate_session_id() -> str:
@@ -70,6 +72,8 @@ class Session:
             'work_duration_minutes': work_duration.total_seconds() / 60,
             'break_count': len(self.breaks),
             'total_activity_count': self.total_activity_count,
+            'keyboard_count': self.keyboard_count,
+            'mouse_click_count': self.mouse_click_count,
             'is_active': self.is_active
         }
 
@@ -88,7 +92,9 @@ class Session:
                 for b in self.breaks
             ],
             'is_active': self.is_active,
-            'total_activity_count': self.total_activity_count
+            'total_activity_count': self.total_activity_count,
+            'keyboard_count': self.keyboard_count,
+            'mouse_click_count': self.mouse_click_count
         }
 
     @classmethod
@@ -102,6 +108,8 @@ class Session:
             session.end_time = datetime.fromisoformat(data['end_time'])
         session.is_active = data.get('is_active', True)
         session.total_activity_count = data.get('total_activity_count', 0)
+        session.keyboard_count = data.get('keyboard_count', 0)
+        session.mouse_click_count = data.get('mouse_click_count', 0)
 
         for b in data.get('breaks', []):
             session.breaks.append({

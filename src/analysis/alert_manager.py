@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Callable
 from src.models.fatigue_score import FatigueScore
 from src.utils.logger import default_logger as logger
+from src.ui.activities.activity_definitions import Activity
 
 # Import sound manager
 try:
@@ -18,7 +19,8 @@ class AlertManager:
 
     def __init__(
         self,
-        on_alert: Optional[Callable[[str, str], None]] = None,
+        on_alert: Optional[Callable[[str, str, Optional[Activity]], None]] = None,
+        recommendation_provider: Optional[Callable[[FatigueScore], list]] = None,
         cooldown_minutes: int = 10
     ):
         """
@@ -26,9 +28,11 @@ class AlertManager:
 
         Args:
             on_alert: Callback function for alerts (title, message)
+            recommendation_provider: Function that takes FatigueScore and returns list of Activities
             cooldown_minutes: Minutes between repeated alerts
         """
         self.on_alert = on_alert
+        self.recommendation_provider = recommendation_provider
         self.cooldown_period = timedelta(minutes=cooldown_minutes)
 
         # Initialize sound manager
@@ -44,23 +48,33 @@ class AlertManager:
     def check_break_reminder(
             self,
             time_until_break: timedelta,
-            is_on_break: bool = False):
+            is_on_break: bool = False,
+            fatigue_score: Optional[FatigueScore] = None):
         """
         Check if break reminder should be shown.
 
         Args:
             time_until_break: Time remaining until recommended break
             is_on_break: Whether currently on break
+            fatigue_score: Optional fatigue score for recommendations
         """
         if not self.break_alerts_enabled or is_on_break:
             return
 
         # Alert if it's time for a break and not in cooldown
         if time_until_break <= timedelta() and self._can_send_break_alert():
+            msg = "You've been working for a while. Take a short break to refresh."
+            
+            # Add recommendation if available
+            recommended_activity = None
+            if fatigue_score:
+                recommended_activity = self._get_recommendation(fatigue_score)
+            
             self._send_alert(
                 "Time for a Break! ⏰",
-                "You've been working for a while. Take a short break to refresh.",
-                alert_type='break')
+                msg,
+                alert_type='break',
+                activity=recommended_activity)
             self._last_break_alert = datetime.now()
 
     def check_fatigue_level(self, fatigue_score: FatigueScore):
@@ -77,18 +91,26 @@ class AlertManager:
 
         # Critical fatigue alert
         if level == "Critical" and self._can_send_critical_alert():
+            msg = f"Your fatigue score is {fatigue_score.score:.0f}. Please take a break immediately!"
+            recommended_activity = self._get_recommendation(fatigue_score)
+            
             self._send_alert(
                 "🚨 Critical Fatigue Level!",
-                f"Your fatigue score is {fatigue_score.score:.0f}. Please take a break immediately!",
-                alert_type='critical')
+                msg,
+                alert_type='critical',
+                activity=recommended_activity)
             self._last_critical_alert = datetime.now()
 
         # High fatigue alert
         elif level == "High" and self._can_send_fatigue_alert():
+            msg = f"Your fatigue level is high ({fatigue_score.score:.0f}). Consider taking a break soon."
+            recommended_activity = self._get_recommendation(fatigue_score)
+
             self._send_alert(
                 "⚠️ High Fatigue Detected",
-                f"Your fatigue level is high ({fatigue_score.score:.0f}). Consider taking a break soon.",
-                alert_type='fatigue')
+                msg,
+                alert_type='fatigue',
+                activity=recommended_activity)
             self._last_fatigue_alert = datetime.now()
 
         # Moderate fatigue (less urgent)
@@ -98,11 +120,30 @@ class AlertManager:
             if (self._last_fatigue_alert is None or now -
                 self._last_fatigue_alert > self.cooldown_period *
                     2):  # Longer cooldown
+                
+                msg = f"Fatigue level: {fatigue_score.score:.0f}. Plan a break in the near future."
+                recommended_activity = self._get_recommendation(fatigue_score)
+
                 self._send_alert(
                     "Moderate Fatigue 💡",
-                    f"Fatigue level: {fatigue_score.score:.0f}. Plan a break in the near future.",
-                    alert_type='info')
+                    msg,
+                    alert_type='info',
+                    activity=recommended_activity)
                 self._last_fatigue_alert = now
+
+    def _get_recommendation(self, score: FatigueScore) -> Optional[Activity]:
+        """Get a recommended activity if provider is available"""
+        if not self.recommendation_provider:
+            return None
+        
+        try:
+            recs = self.recommendation_provider(score)
+            if recs and len(recs) > 0:
+                return recs[0]
+        except Exception as e:
+            logger.error(f"Error getting recommendation for alert: {e}")
+        
+        return None
 
     def check_eye_strain(self, blink_rate: float):
         """
@@ -161,7 +202,7 @@ class AlertManager:
         """
         self._send_alert(title, message, alert_type='custom')
 
-    def _send_alert(self, title: str, message: str, alert_type: str = 'info'):
+    def _send_alert(self, title: str, message: str, alert_type: str = 'info', activity: Optional[Activity] = None):
         """
         Send an alert through the callback.
 
@@ -169,6 +210,7 @@ class AlertManager:
             title: Alert title
             message: Alert message
             alert_type: Type of alert (break, fatigue, critical, info, custom)
+            activity: Optional recommended activity
         """
         logger.info(f"Alert [{alert_type}]: {title} - {message}")
 
@@ -181,7 +223,13 @@ class AlertManager:
 
         if self.on_alert:
             try:
-                self.on_alert(title, message)
+                # Handle callback signature (legacy vs new)
+                import inspect
+                sig = inspect.signature(self.on_alert)
+                if len(sig.parameters) >= 3:
+                     self.on_alert(title, message, activity)
+                else:
+                     self.on_alert(title, message)
             except Exception as e:
                 logger.error(f"Error sending alert: {e}")
 

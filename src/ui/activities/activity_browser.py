@@ -12,9 +12,10 @@ from .activity_demo_window import ActivityDemoWindow
 class ActivityBrowser(ctk.CTkFrame):
     """Widget for browsing and selecting cognitive refresh activities"""
 
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, analyzer=None, **kwargs):
         super().__init__(parent, fg_color="transparent", **kwargs)
 
+        self.analyzer = analyzer
         self.current_category = "all"
         self._create_widgets()
 
@@ -193,6 +194,27 @@ class ActivityBrowser(ctk.CTkFrame):
         # Sort by effectiveness
         activities.sort(key=lambda a: a.effectiveness_rating, reverse=True)
 
+        # Recommendation Section (Only show on "All" view)
+        if category == "all" and self.analyzer:
+            self._create_recommendation_section(self.activities_container)
+            
+            # Separator
+            ctk.CTkFrame(
+                self.activities_container,
+                height=2,
+                fg_color="#334155"
+            ).pack(fill="x", padx=25, pady=(0, 25))
+            
+            # Title for All Activities
+            ctk.CTkLabel(
+                self.activities_container,
+                text="📚 Browse All Activities",
+                font=ctk.CTkFont(size=20, weight="bold"),
+                text_color="#94a3b8",
+                anchor="w"
+            ).pack(fill="x", padx=25, pady=(0, 15))
+
+
         # Create cards in 4-column grid for full-width responsive tiles
         for i, activity in enumerate(activities):
             self._create_activity_card(
@@ -202,6 +224,68 @@ class ActivityBrowser(ctk.CTkFrame):
                 4,
                 col=i %
                 4)
+
+    def _create_recommendation_section(self, parent):
+        """Create the recommendation section at top of view"""
+        try:
+            # Get latest score
+            latest_score = None
+            if hasattr(self.analyzer, 'history'):
+                latest_score = self.analyzer.history.get_latest()
+            
+            # Get recommendations
+            # If no score, create a dummy one or just get general recs
+            if not latest_score:
+                # If no data yet, don't show recommendations
+                return
+
+            recommendations = self.analyzer.get_smart_recommendations(latest_score)
+            if not recommendations:
+                return
+
+            # Container
+            container = ctk.CTkFrame(parent, fg_color="transparent")
+            container.pack(fill="x", padx=25, pady=(0, 25))
+            
+            # Header
+            header = ctk.CTkFrame(container, fg_color="transparent")
+            header.pack(fill="x", pady=(0, 15))
+            
+            ctk.CTkLabel(
+                header,
+                text="✨ Recommended for You",
+                font=ctk.CTkFont(size=24, weight="bold"),
+                text_color="#facc15" # Yellow/Gold
+            ).pack(side="left")
+            
+            ctk.CTkLabel(
+                header,
+                text=f"Based on your current fatigue level: {latest_score.get_level()}",
+                font=ctk.CTkFont(size=14),
+                text_color="#94a3b8"
+            ).pack(side="left", padx=15, pady=(5,0))
+
+            # Recommendation Cards Grid
+            rec_grid = ctk.CTkFrame(container, fg_color="transparent")
+            rec_grid.pack(fill="x")
+            
+            # Configure grid columns
+            rec_grid.grid_columnconfigure(0, weight=1)
+            rec_grid.grid_columnconfigure(1, weight=1)
+            rec_grid.grid_columnconfigure(2, weight=1)
+            
+            # Show top 3
+            for i, activity in enumerate(recommendations[:3]):
+                self._create_activity_card(
+                    rec_grid, 
+                    activity, 
+                    row=0, 
+                    col=i
+                )
+                
+        except Exception as e:
+            print(f"Error showing recommendations: {e}")
+
 
     def _create_activity_card(
             self,
@@ -329,6 +413,10 @@ class ActivityBrowser(ctk.CTkFrame):
             border_color=self._brighten_color(activity.color)
         )
         try_btn.pack(fill="x", pady=(8, 0))
+
+    def start_activity(self, activity: Activity):
+        """Start an activity programmatically"""
+        self._open_activity_demo(activity)
 
     def _open_activity_demo(self, activity: Activity):
         """Open the activity demo window"""

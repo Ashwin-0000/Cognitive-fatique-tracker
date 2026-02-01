@@ -111,51 +111,6 @@ class DataManager:
         logger.info("Database initialized")
 
     # Session operations
-    def get_all_sessions(
-        self,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None
-    ) -> List[Session]:
-        """Get all sessions with optional date filtering"""
-        conn = self._get_connection()
-        cursor = conn.cursor()
-
-        query = "SELECT * FROM sessions"
-        params = []
-        conditions = []
-
-        if start_date:
-            conditions.append("start_time >= ?")
-            params.append(start_date.isoformat())
-        
-        if end_date:
-            conditions.append("start_time <= ?")
-            params.append(end_date.isoformat())
-        
-        if conditions:
-            query += " WHERE " + " AND ".join(conditions)
-        
-        query += " ORDER BY start_time DESC"
-
-        cursor.execute(query, params)
-        rows = cursor.fetchall()
-        conn.close()
-
-        sessions = []
-        for row in rows:
-            data = {
-                'session_id': row['session_id'],
-                'start_time': row['start_time'],
-                'end_time': row['end_time'],
-                'breaks': json.loads(row['breaks']),
-                'is_active': bool(row['is_active']),
-                'total_activity_count': row['total_activity_count']
-            }
-            sessions.append(Session.from_dict(data))
-
-        return sessions
-
-    # Session operations
     def save_session(self, session: Session):
         """Save or update a session"""
         conn = self._get_connection()
