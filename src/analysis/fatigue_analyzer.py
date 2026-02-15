@@ -140,19 +140,36 @@ class FatigueAnalyzer:
         duration_factor = min(session_duration_hours / 4, 1.0) * 15
         factors['session_duration'] = duration_factor
         
-        # 6. Blink rate factor (0-25 points)
+        # 6. Blink rate factor (0-15 points) - Smoother penalty
+        # 6. Blink rate factor (0-15 points) - Smoother penalty with Flow State logic
         if blink_rate > 0:
-            if blink_rate < 5:
-                blink_factor = 25
-            elif blink_rate < 10:
-                blink_factor = 20
-            elif blink_rate < 15:
-                blink_factor = 10
+            # Penalties start below 12 blinks/min, max 15 points at 0 blinks/min
+            if blink_rate < 12:
+                raw_blink_factor = min(15.0, (12.0 - blink_rate) * 1.25)
+                
+                # FLOW STATE CHECK:
+                # If activity is high (> 80% of baseline), low blink rate might indicate focus/flow
+                # Reduce penalty significantly in this case
+                if baseline > 0:
+                    current_activity_ratio = activity_rate / baseline
+                    if current_activity_ratio > 0.8:
+                        # Damping factor: 1.0 at 0.8 ratio, dropping to 0.0 at 1.5 ratio
+                        # This means if you are working very hard (1.5x baseline), blink penalty is removed
+                        flow_damping = max(0.0, 1.0 - (current_activity_ratio - 0.8) * 1.5)
+                        blink_factor = raw_blink_factor * flow_damping
+                        if flow_damping < 1.0:
+                            logger.debug(f"Flow state detected (ratio {current_activity_ratio:.2f}), damping blink penalty: {raw_blink_factor:.1f} -> {blink_factor:.1f}")
+                    else:
+                        blink_factor = raw_blink_factor
+                else:
+                    blink_factor = raw_blink_factor
             else:
                 blink_factor = 0
+            
             factors['blink_rate'] = blink_rate
             factors['eye_strain'] = blink_factor
         else:
+            # If rate is 0 (sensor blocked or just started), don't penalize heavily immediately
             blink_factor = 0
             factors['eye_strain'] = 0
         

@@ -7,11 +7,23 @@ except ImportError:
     cv2 = None
 
 try:
-    import mediapipe as mp
+    # Aggressively suppress MediaPipe/TensorFlow warnings during import
+    from src.utils.suppress_output import suppress_stderr
+    with suppress_stderr():
+        import mediapipe as mp
     MEDIAPIPE_AVAILABLE = True
 except ImportError:
     MEDIAPIPE_AVAILABLE = False
     mp = None
+except Exception as e:
+    # Fallback if suppression fails
+    print(f"Warning: Failed to suppress MediaPipe output: {e}")
+    try:
+        import mediapipe as mp
+        MEDIAPIPE_AVAILABLE = True
+    except ImportError:
+        MEDIAPIPE_AVAILABLE = False
+        mp = None
 
 import threading
 import time

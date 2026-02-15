@@ -4,15 +4,17 @@ from .activity_definitions import Activity
 import time
 import math
 from datetime import datetime
+from src.utils.sound_manager import SoundManager
 
 
 class ActivityDemoWindow(ctk.CTkToplevel):
     """Enhanced window for demonstrating activities with breathing animations and better UX"""
 
-    def __init__(self, parent, activity: Activity):
+    def __init__(self, parent, activity: Activity, sound_manager: SoundManager = None):
         super().__init__(parent)
 
         self.activity = activity
+        self.sound_manager = sound_manager
         self.time_remaining = activity.duration_seconds
         self.is_running = False
         self.start_time = None
@@ -354,6 +356,10 @@ class ActivityDemoWindow(ctk.CTkToplevel):
             self.breath_cue_label.configure(text="Breathe In Deeply...")
             self._update_timer()
             self._animate_breathing()
+            
+            # Audio
+            if self.sound_manager and self.sound_manager.enabled:
+                self.sound_manager.play_session_start()
 
     def _pause_activity(self):
         """Pause/resume the activity"""
@@ -501,10 +507,15 @@ class ActivityDemoWindow(ctk.CTkToplevel):
         current_text = self.audio_btn.cget("text")
         if "🔊" in current_text:
             self.audio_btn.configure(text="🔇  Audio Off", fg_color="#374151")
+            if self.sound_manager:
+                self.sound_manager.set_enabled(False)
         else:
             self.audio_btn.configure(
                 text="🔊  Audio Guide",
                 fg_color="transparent")
+            if self.sound_manager:
+                self.sound_manager.set_enabled(True)
+                self.sound_manager.play_break_alert() # Play sample
 
     def _on_complete(self):
         """Handle activity completion"""

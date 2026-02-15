@@ -23,6 +23,7 @@
   "ui": {
     "theme": "dark",
     "color_scheme": "blue",
+
     "update_interval_ms": 1000,
     "chart_history_minutes": 60
   },

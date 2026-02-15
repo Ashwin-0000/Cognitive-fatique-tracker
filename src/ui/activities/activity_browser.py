@@ -13,11 +13,14 @@ class ActivityBrowser(ctk.CTkFrame):
     """Widget for browsing and selecting cognitive refresh activities"""
 
     def __init__(self, parent, analyzer=None, **kwargs):
+        self.on_activity_start = kwargs.pop('on_activity_start', None)
+        self.sound_manager = kwargs.pop('sound_manager', None)
         super().__init__(parent, fg_color="transparent", **kwargs)
 
         self.analyzer = analyzer
         self.current_category = "all"
         self._create_widgets()
+
 
     def _create_widgets(self):
         """Create all UI widgets"""
@@ -420,10 +423,15 @@ class ActivityBrowser(ctk.CTkFrame):
 
     def _open_activity_demo(self, activity: Activity):
         """Open the activity demo window"""
+        # Notify listener that activity is starting
+        if self.on_activity_start:
+            self.on_activity_start(activity.name)
+            
         top_level = self.winfo_toplevel()
-        demo_window = ActivityDemoWindow(top_level, activity)
+        demo_window = ActivityDemoWindow(top_level, activity, sound_manager=self.sound_manager)
 
     def _darken_color(self, hex_color: str) -> str:
+
         """Darken a hex color for hover effect"""
         hex_color = hex_color.lstrip('#')
         r, g, b = tuple(int(hex_color[i:i + 2], 16) for i in (0, 2, 4))

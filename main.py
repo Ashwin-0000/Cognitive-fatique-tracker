@@ -4,7 +4,14 @@ A Python application that monitors user activity and tracks cognitive fatigue le
 """
 import sys
 import traceback
+import os
 from pathlib import Path
+
+# Suppress TensorFlow/Abseil/MediaPipe warnings
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # FATAL
+os.environ['ABSL_LOG_LEVEL'] = 'error'
+os.environ['GLOG_minloglevel'] = '3'  # FATAL - Suppress ALL C++ GLOG (MediaPipe)
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'  # Suppress oneDNN warnings
 
 # Add src to path
 src_path = Path(__file__).parent / "src"

@@ -40,12 +40,24 @@ class ConfigManager:
             try:
                 with open(self.user_config_path, 'r') as f:
                     user_config = json.load(f)
-                config.update(user_config)
+                
+                # Deep merge user config into config
+                self._deep_update(config, user_config)
                 logger.info("Loaded user configuration")
             except Exception as e:
                 logger.warning(f"Failed to load user config: {e}")
 
         return config
+
+    def _deep_update(self, base_dict: dict, update_dict: dict):
+        """Recursively update dictionary"""
+        for key, value in update_dict.items():
+            if (key in base_dict and 
+                isinstance(base_dict[key], dict) and 
+                isinstance(value, dict)):
+                self._deep_update(base_dict[key], value)
+            else:
+                base_dict[key] = value
 
     def get(self, key: str, default: Any = None) -> Any:
         """

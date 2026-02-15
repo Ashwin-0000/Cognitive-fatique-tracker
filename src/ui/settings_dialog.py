@@ -174,6 +174,23 @@ class SettingsDialog(ctk.CTkToplevel):
             command=self._on_eye_tracking_toggle
         ).pack(anchor="w", padx=15, pady=(10, 15))
 
+        # System Section
+        system_section = ctk.CTkFrame(container)
+        system_section.pack(fill="x", pady=(0, 15))
+
+        ctk.CTkLabel(
+            system_section,
+            text="System",
+            font=ctk.CTkFont(size=16, weight="bold")
+        ).pack(anchor="w", padx=15, pady=(15, 5))
+
+        self.minimize_to_tray_var = ctk.BooleanVar(value=False)
+        ctk.CTkCheckBox(
+            system_section,
+            text="Minimize to Tray on Close",
+            variable=self.minimize_to_tray_var
+        ).pack(anchor="w", padx=15, pady=10)
+
         # UI Theme Section
         theme_section = ctk.CTkFrame(container)
         theme_section.pack(fill="x", pady=(0, 15))
@@ -245,6 +262,9 @@ class SettingsDialog(ctk.CTkToplevel):
             self.config_manager.get(
                 'eye_tracking.enabled', False))
 
+        self.minimize_to_tray_var.set(
+            self.config_manager.get('ui.minimize_to_tray', False))
+
     def _on_eye_tracking_toggle(self):
         """Handle eye tracking toggle with consent"""
         if self.eye_tracking_var.get():
@@ -308,6 +328,10 @@ class SettingsDialog(ctk.CTkToplevel):
             self.config_manager.set(
                 'eye_tracking.enabled',
                 self.eye_tracking_var.get())
+
+            self.config_manager.set(
+                'ui.minimize_to_tray',
+                self.minimize_to_tray_var.get())
 
             # Save to file
             self.config_manager.save()

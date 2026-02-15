@@ -9,9 +9,10 @@ from src.ui.dashboard import Dashboard
 from src.ui.charts import ActivityChart, FatigueChart, BlinkRateChart
 from src.ui.settings_dialog import SettingsDialog
 from src.ui.keyboard_handler import KeyboardHandler
-from src.ui.system_tray import SystemTray
+from plyer import notification
 from src.ui.activities.activity_browser import ActivityBrowser
 from src.ui.activities.activity_definitions import Activity
+from src.ui.statistics_page import StatisticsPage
 from PIL import Image, ImageTk
 import os
 from src.storage.config_manager import ConfigManager
@@ -25,6 +26,7 @@ from src.analysis.activity_manager import ActivityManager
 from src.models.session import Session
 from src.models.activity_data import ActivityData
 from src.utils.logger import default_logger as logger
+from src.utils.sound_manager import SoundManager
 
 
 class MainWindow(ctk.CTk):
@@ -56,10 +58,10 @@ class MainWindow(ctk.CTk):
             recommendation_provider=self.fatigue_analyzer.get_smart_recommendations
         )
         self.activity_manager = ActivityManager(data_manager=self.data_manager)
+        self.sound_manager = SoundManager()
 
         # Initialize keyboard shortcuts and system tray
         self.keyboard_handler: Optional[KeyboardHandler] = None
-        self.system_tray: Optional[SystemTray] = None
 
         self.current_session: Optional[Session] = None
         self.is_monitoring = False
@@ -76,10 +78,6 @@ class MainWindow(ctk.CTk):
 
         # Setup keyboard shortcuts
         self._setup_keyboard_shortcuts()
-
-        # Setup system tray (if enabled)
-        if self.config_manager.get('ui.enable_system_tray', True):
-            self._setup_system_tray()
 
         # Start update loop
         self.update_interval = self.config_manager.get(
@@ -127,7 +125,21 @@ class MainWindow(ctk.CTk):
             if os.path.exists(logo_path):
                 logo_img = Image.open(logo_path)
                 logo_img = logo_img.resize((50, 50), Image.Resampling.LANCZOS)
-                self.webcam_photo = Image.open("assets/webcam_placeholder.png")  # type: ignore
+                
+                # Load placeholder for webcam
+                placeholder_path = os.path.join(
+                    os.path.dirname(
+                        os.path.dirname(
+                            os.path.dirname(__file__))),
+                    "assets",
+                    "webcam_placeholder.png")
+                
+                if os.path.exists(placeholder_path):
+                    self.webcam_photo = Image.open(placeholder_path)
+                else:
+                    # Create a blank image if not found
+                    self.webcam_photo = Image.new('RGB', (320, 240), color=(30, 30, 30))
+                
                 logo_photo = ImageTk.PhotoImage(logo_img)
                 logo_label = ctk.CTkLabel(
                     logo_frame, image=logo_photo, text="")
@@ -509,7 +521,13 @@ class MainWindow(ctk.CTk):
     def _create_activities_page(self):
         """Create Activities page with refresh activity browser"""
         # Activity browser widget placed directly (no wrapper needed)
-        self.activity_browser = ActivityBrowser(self.content_frame, analyzer=self.fatigue_analyzer)
+        self.activity_browser = ActivityBrowser(
+            self.content_frame, 
+            analyzer=self.fatigue_analyzer,
+            on_activity_start=self._on_activity_start,
+            sound_manager=self.sound_manager
+        )
+
         self.activity_browser.grid(row=0, column=0, sticky="nsew")
 
         # Store reference for page switching
@@ -517,34 +535,10 @@ class MainWindow(ctk.CTk):
 
     def _create_statistics_page(self):
         """Create Statistics page"""
-        page = ctk.CTkFrame(self.content_frame, fg_color="transparent")
-        page.grid_columnconfigure(0, weight=1)
-        page.grid_rowconfigure(0, weight=1)
+        self.statistics_page = StatisticsPage(self.content_frame, self.data_manager)
+        self.statistics_page.grid(row=0, column=0, sticky="nsew")
 
-        # Placeholder for statistics
-        placeholder = ctk.CTkFrame(
-            page,
-            fg_color="#334155",
-            corner_radius=12,
-            border_width=1,
-            border_color="#475569")
-        placeholder.grid(row=0, column=0, sticky="nsew")
-
-        ctk.CTkLabel(
-            placeholder,
-            text="🎯 Statistics Dashboard",
-            font=ctk.CTkFont(size=26, weight="bold"),
-            text_color="#8b5cf6"
-        ).pack(pady=30)
-
-        ctk.CTkLabel(
-            placeholder,
-            text="Coming Soon: Weekly/Monthly Statistics, Productivity Analytics, and More!",
-            font=ctk.CTkFont(
-                size=14),
-            text_color="#888888").pack()
-
-        self.pages["Statistics"] = page
+        self.pages["Statistics"] = self.statistics_page
 
     def _create_settings_page(self):
         """Create Settings page with inline settings"""
@@ -808,10 +802,15 @@ class MainWindow(ctk.CTk):
             values=["dark", "light"]
         ).pack(side="left", padx=(10, 0))
 
+        # System Section (middle right - shared with theme or new row?)
+        # Let's add it to a new row for clarity, shifting buttons down
+        
+
+
         # Save/Reset Buttons (bottom, centered)
         button_frame = ctk.CTkFrame(page, fg_color="transparent")
         button_frame.grid(
-            row=3,
+            row=4,
             column=0,
             columnspan=3,
             sticky="ew",
@@ -1120,6 +1119,10 @@ class MainWindow(ctk.CTk):
         if page_name in self.pages:
             self.pages[page_name].grid()
             self.current_page = page_name
+            
+            # Refresh if it's statistics page
+            if page_name == "Statistics" and hasattr(self.pages[page_name], "refresh"):
+                self.pages[page_name].refresh()
 
             # Update page title and colors
             icons = {
@@ -1263,15 +1266,36 @@ class MainWindow(ctk.CTk):
         if self.time_tracker.is_on_break:
             self.time_tracker.end_break()
             self.break_button.configure(text="☕ Break")
-            logger.info("Ended break")
+            # Logger handled in TimeTracker
+            
+            # Navigate back to Dashboard to resume work
+            self._switch_page("Dashboard")
         else:
             self.time_tracker.start_break()
             self.break_button.configure(text="⏸️ End Break")
-            logger.info("Started break")
+            # Logger handled in TimeTracker
 
             # Navigate to Activities page to help user choose a refresh
             # activity
             self._switch_page("Activities")
+
+    def _on_activity_start(self, activity_name: str = None):
+        """Handle start of a refresh activity"""
+        # Automatically start break if not already on break
+        if self.current_session and self.time_tracker and not self.time_tracker.is_on_break:
+            log_msg = f"Activity started [{activity_name}] - automatically switching to break mode" if activity_name else "Activity started - automatically switching to break mode"
+            logger.info(log_msg)
+            
+            self.time_tracker.start_break()
+            self.break_button.configure(text="⏸️ End Break")
+            
+            # Show notification
+            if self.system_tray:
+                self.system_tray.show_notification(
+                    "Break Started ☕", 
+                    f"Enjoy {activity_name if activity_name else 'your activity'}! Tracking pause enabled."
+                )
+
 
     def _on_activity(self, activity: ActivityData):
         """Handle activity event"""
@@ -1443,8 +1467,21 @@ class MainWindow(ctk.CTk):
                 logger.error(f"Error checking eye strain: {e}")
 
             # Auto-save session periodically
-            if self.current_session and session_time.total_seconds() % 60 == 0:
-                self.data_manager.save_session(self.current_session)
+            if self.current_session:
+                seconds_elapsed = session_time.total_seconds()
+                
+                # Save every minute
+                if seconds_elapsed % 60 == 0:
+                    self.data_manager.save_session(self.current_session)
+                    
+                    # Heartbeat log (every minute)
+                    logger.info(
+                        f"HEARTBEAT | Session: {self.current_session.session_id} | "
+                        f"Work: {work_time.total_seconds()/60:.1f}m | "
+                        f"Fatigue: {fatigue_score.score:.1f} | "
+                        f"Status: {'Break' if is_on_break else 'Working'}"
+                    )
+
 
         except Exception as e:
             logger.error(f"Error updating UI: {e}", exc_info=True)
@@ -1497,6 +1534,21 @@ class MainWindow(ctk.CTk):
                 messagebox.showinfo(title, message)
 
         self.after(0, show)
+        
+        # Show system tray notification if available
+        if self.system_tray and self.config_manager.get('ui.enable_system_tray', True):
+            self.system_tray.show_notification(title, message)
+            
+        # Bring window to front
+        try:
+            if self.state() == "iconic":
+                self.deiconify()
+            self.lift()
+            self.attributes('-topmost', True)
+            self.after(500, lambda: self.attributes('-topmost', False))
+        except Exception as e:
+            logger.error(f"Error bringing window to front: {e}", exc_info=True)
+
         
     def _try_activity(self, activity: Activity):
         """Switch to activity tab and start activity"""
@@ -1736,56 +1788,69 @@ Great work! Remember to take regular breaks.
 
         logger.info("Keyboard shortcuts configured")
 
-    def _setup_system_tray(self):
-        """Setup system tray icon"""
+
+
+    def _show_alert(self, title, message):
+        """Show alert to user"""
+        logger.info(f"Alert [{title}]: {message}")
+
         try:
-            self.system_tray = SystemTray()
-
-            # Set callbacks
-            self.system_tray.set_callback('show', self._show_window)
-            self.system_tray.set_callback('hide', self._hide_to_tray)
-            self.system_tray.set_callback('start_session', self._start_session)
-            self.system_tray.set_callback('stop_session', self._stop_session)
-            self.system_tray.set_callback('take_break', self._toggle_break)
-            self.system_tray.set_callback('settings', self._open_settings)
-            self.system_tray.set_callback('quit', self._quit_app)
-
-            # Start tray
-            self.system_tray.start()
-            logger.info("System tray configured")
-        except Exception as e:
-            logger.error(f"Failed to setup system tray: {e}")
-            self.system_tray = None
-
-    def _show_window(self):
-        """Show main window from tray"""
-        self.deiconify()
-        self.lift()
-        self.focus_force()
-
-    def _hide_to_tray(self):
-        """Hide window to system tray"""
-        if self.system_tray:
-            self.withdraw()
-            self.system_tray.show_notification(
-                "Minimized to Tray",
-                "Cognitive Fatigue Tracker is still running in the background"
+            notification.notify(
+                title=title,
+                message=message,
+                app_name="Cognitive Fatigue Tracker",
+                app_icon=None,  # Or path to icon
+                timeout=10,
             )
+        except Exception as e:
+            logger.error(f"Failed to show notification: {e}")
+        
+        # Don't force window to front - just play sound if needed
+        # self.lift() -> REMOVED to prevent focus stealing
+        # self.attributes('-topmost', True) -> REMOVED
+        # self.attributes('-topmost', False) -> REMOVED
+
+        # Play alert sound
+        if self.sound_manager and self.sound_manager.enabled:
+            # Choose sound based on title/type
+            if "Break" in title:
+                self.sound_manager.play_break_alert()
+            elif "Fatigue" in title:
+                self.sound_manager.play_session_end() # Or another suitable sound
+            else:
+                self.sound_manager.play_break_alert()
+
+        # Show dialog without blocking main thread interactions or stealing focus
+        # Use a non-modal toplevel or just the tray notification
+        messagebox.showinfo(title, message)
+
+
 
     def _quit_app(self):
         """Quit the application"""
-        if self.system_tray:
-            self.system_tray.stop()
         self.destroy()
 
     def _on_close(self):
         """Handle window close"""
+        logger.info("Close requested")
+
         # Normal close behavior - no minimize to tray
         if self.is_monitoring:
             if messagebox.askyesno(
                 "Confirm Exit",
                     "A session is active. Do you want to end it and exit?"):
                 self._stop_session()
+                # Ensure callback cleanup happens
+                if self.input_monitor:
+                    self.input_monitor.stop()
+                if self.eye_tracker:
+                    self.eye_tracker.stop()
                 self._quit_app()
         else:
-            self._quit_app()
+            if messagebox.askyesno("Confirm Exit", "Are you sure you want to quit?"):
+                # Ensure callback cleanup happens
+                if self.input_monitor:
+                    self.input_monitor.stop()
+                if self.eye_tracker:
+                    self.eye_tracker.stop()
+                self._quit_app()
